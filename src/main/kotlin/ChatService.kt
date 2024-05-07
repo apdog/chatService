@@ -22,29 +22,22 @@ object ChatService {
     fun getUnreadChatsCount(): Int = chatsList.count { !it.markChatAsRead }
 
     fun getLastMessages(chatId: Int): List<Message> {
-        val chat = getChatById(chatId)
-            ?: throw ObjectNotFoundException("Чат с id $chatId не существует")
-        return if (chat.messages.isNotEmpty()) {
-            chat.messages.takeLast(5)
-        } else {
-            println("Нет сообщений")
-            listOf()
-        }
+        val chat = getChatById(chatId) ?: throw ObjectNotFoundException("Чат с id $chatId не существует")
+        return chat.messages.asSequence().take(5).toList()
     }
 
     fun getMessages(userId: Int, countOfMessages: Int): List<Message> {
-        val filteredMessagesList = messagesList.filter { it.userId == userId }
-        if (filteredMessagesList.isEmpty()) {
+        val filteredMessagesSequence = messagesList.asSequence().filter { it.userId == userId }
+        if (filteredMessagesSequence.none()) {
             println("Сообщений с данным пользователем нет")
-            return listOf()
+            return emptyList()
         }
-        filteredMessagesList.forEach { it.markMessageAsRead }
-        return filteredMessagesList.takeLast(countOfMessages)
+        filteredMessagesSequence.forEach { it.markMessageAsRead }
+        return filteredMessagesSequence.take(countOfMessages).toList()
     }
 
     fun deleteMessage(chatId: Int, messageId: Int): Int {
-        val chat = getChatById(chatId)
-            ?: throw ObjectNotFoundException("Чат с id $chatId не был удален, так как его не существует")
+        val chat = getChatById(chatId) ?: throw ObjectNotFoundException("Чат с id $chatId не существует")
         val messageToDelete = chat.messages.find { it.messageId == messageId }
             ?: throw ObjectNotFoundException("Сообщение с ID $messageId в чате $chatId не найдено")
         chat.messages.remove(messageToDelete)
@@ -60,11 +53,7 @@ object ChatService {
         startChatId++
         val newChatId = startChatId
         return Chat(
-            chatId = newChatId,
-            userId = userId,
-            photo = null,
-            messages = mutableListOf(),
-            markChatAsRead = false
+            chatId = newChatId, userId = userId, photo = null, messages = mutableListOf(), markChatAsRead = false
         ).also {
             chatsList.add(it)
         }
@@ -95,10 +84,10 @@ object ChatService {
 
     fun printChats() {
         val allChats = getChats()
-        for (chat in allChats) {
+        allChats.forEach { chat ->
             println(
-                "Чат c: ${chat.userId} (ID чата ${chat.chatId})\n" +
-                        "${chat.messages.last().message} /Прочитан: ${chat.messages.last().markMessageAsRead}"
+                "Чат c: ${chat.userId} (ID чата ${chat.chatId})\n" + "${chat.messages.lastOrNull()?.message 
+                    ?: "Нет сообщений"} /Прочитан: ${chat.messages.lastOrNull()?.markMessageAsRead}"
             )
         }
     }

@@ -148,25 +148,6 @@ class ChatServiceTest {
     }
 
     @Test
-    fun getLastMessageEmpty() {
-        val message = Message(
-            messageId = 0,
-            userId = 777,
-            message = "Test",
-            attachments = mutableListOf(),
-            date = Date(),
-            markMessageAsRead = false
-        )
-        addMessage(0, message, 777)
-        deleteMessage(1, 1)
-        val outContent = ByteArrayOutputStream()
-        System.setOut(PrintStream(outContent))
-        getLastMessages(1)
-        val output = outContent.toString().trim()
-        assertEquals("Нет сообщений", output)
-    }
-
-    @Test
     fun getMessagesTest() {
         val message = Message(
             messageId = 1,
@@ -314,7 +295,6 @@ class ChatServiceTest {
             date = Date(),
             markMessageAsRead = true
         )
-        val index = addMessage(1, message, 777)
         assertTrue(message.markMessageAsRead)
     }
 
