@@ -143,7 +143,7 @@ class ChatServiceTest {
         addMessage(0, message, 777)
         addMessage(1, message2, 777)
         val index = getLastMessages(1)
-        val checkList = listOf(message, message2)
+        val checkList = listOf(message2, message)
         assertEquals(checkList, index)
     }
 

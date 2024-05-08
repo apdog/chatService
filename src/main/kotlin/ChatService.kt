@@ -23,18 +23,19 @@ object ChatService {
 
     fun getLastMessages(chatId: Int): List<Message> {
         val chat = getChatById(chatId) ?: throw ObjectNotFoundException("Чат с id $chatId не существует")
-        return chat.messages.asSequence().take(5).toList()
+        return chat.messages.asReversed().asSequence().take(5).toList()
     }
 
-    fun getMessages(userId: Int, countOfMessages: Int): List<Message> {
-        val filteredMessagesSequence = messagesList.asSequence().filter { it.userId == userId }
-        if (filteredMessagesSequence.none()) {
-            println("Сообщений с данным пользователем нет")
-            return emptyList()
-        }
-        filteredMessagesSequence.forEach { it.markMessageAsRead }
-        return filteredMessagesSequence.take(countOfMessages).toList()
-    }
+    fun getMessages(userId: Int, countOfMessages: Int): List<Message> =
+        messagesList.asSequence()
+            .filter { it.userId == userId }
+            .ifEmpty {
+                println("Сообщений с данным пользователем нет")
+                emptySequence()
+            }
+            .onEach { it.markMessageAsRead = true } // здесь была небольшая неточность - не перезаписывалось состояние
+            .take(countOfMessages)
+            .toList()
 
     fun deleteMessage(chatId: Int, messageId: Int): Int {
         val chat = getChatById(chatId) ?: throw ObjectNotFoundException("Чат с id $chatId не существует")
